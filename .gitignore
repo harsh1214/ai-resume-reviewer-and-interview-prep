@@ -1,0 +1,97 @@
+# =========================
+# CLIENT (Next.js)
+# =========================
+
+client/node_modules/
+client/.next/
+client/out/
+client/build/
+
+# Logs
+
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+client/pnpm-debug.log*
+
+# Environment Variables
+
+client/.env
+client/.env.local
+client/.env.development.local
+client/.env.production.local
+client/.env.test.local
+
+# Cache
+
+client/.turbo/
+client/.vercel/
+
+# =========================
+# SERVER (FastAPI)
+# =========================
+
+server/.venv/
+server/venv/
+server/env/
+
+# Python
+
+server/**pycache**/
+server/*.py[cod]
+server/*$py.class
+
+# Pytest
+
+server/.pytest_cache/
+
+# Mypy
+
+server/.mypy_cache/
+
+# Ruff
+
+server/.ruff_cache/
+
+# Coverage
+
+server/.coverage
+server/htmlcov/
+
+# Environment Variables
+
+server/.env
+server/.env.*
+
+# SQLite
+
+server/*.db
+server/*.sqlite3
+
+# Logs
+
+server/*.log
+
+# Alembic
+
+server/alembic/versions/*.pyc
+
+# =========================
+# IDE
+# =========================
+
+.vscode/
+.idea/
+
+# OS Files
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# Misc
+# =========================
+
+*.swp
+*.swo
+*.tmp
