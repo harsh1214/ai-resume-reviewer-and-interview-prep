@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from '@/lib/api';
-import { IconAlertCircle, IconBrain, IconChartBar, IconCheck, IconFileText, IconStar, IconTarget, IconX, IconUser, IconMail, IconPhone, IconMapPin, IconBrandLinkedin, IconBriefcase, IconSchool, IconTools, IconRefresh,IconDownload } from '@tabler/icons-react';
+import { IconAlertCircle, IconBrain, IconChartBar, IconCheck, IconFileText, IconStar, IconTarget, IconX, IconUser, IconMail, IconPhone, IconMapPin, IconBrandLinkedin, IconBriefcase, IconSchool, IconTools, IconRefresh } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
