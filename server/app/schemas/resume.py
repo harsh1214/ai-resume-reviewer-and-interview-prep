@@ -15,15 +15,11 @@ class ResumeAnalysisResponse(BaseModel):
     content_score: Optional[float] = None
     skills_score: Optional[float] = None
     formatting_score: Optional[float] = None
-    strengths: Optional[List[str]] = None
-    weaknesses: Optional[List[str]] = None
-    suggestions: Optional[List[str]] = None
-    keywords: Optional[List[str]] = None
-    extracted_data: Optional[Dict[str, Any]] = None
     status: str
     created_at: datetime
     updated_at: Optional[datetime]
-    
+    analysis_results: Optional[Dict[str, Any]] = None
+
     class Config:
         from_attributes = True
 

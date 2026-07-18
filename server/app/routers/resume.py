@@ -74,15 +74,11 @@ async def analyze_resume(resume_id: int, current_user: User = Depends(get_curren
 
         analysis = await analyzer.analyze_resume(file_path)
 
+        resume.analysis_results = analysis
         resume.ats_score = analysis.get("ats_score", {}).get("overall", 0)
         resume.content_score = analysis.get("ats_score", {}).get("content", 0)
         resume.skills_score = analysis.get("ats_score", {}).get("skills", 0)
         resume.formatting_score = analysis.get("ats_score", {}).get("formatting", 0)
-        resume.extracted_data = analysis.get("personal_info", {})
-        resume.strengths = analysis.get("strengths", [])
-        resume.weaknesses = analysis.get("weaknesses", [])
-        resume.suggestions = analysis.get("suggestions", [])
-        resume.keywords = analysis.get("keywords", [])
         resume.status = "completed"
 
         await db.commit()
