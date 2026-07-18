@@ -68,7 +68,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex space-x-3">
                             <Link
-                                href="/analysis"
+                                href="/resumes/upload"
                                 className="bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all flex items-center space-x-2"
                             >
                                 <IconUpload size={18} />

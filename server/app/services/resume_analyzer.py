@@ -1,5 +1,6 @@
+import json
 from typing import Dict, Any
-from fastapi import types
+from google.genai import types
 from google import genai
 from loguru import logger
 from app.config import settings
@@ -35,7 +36,7 @@ class ResumeAnalyzer:
             logger.error(f"Resume analysis failed: {e}")
             raise
 
-    async def _analyze_with_ai(self, resume_text: str) -> ResumeAIAnalysis:
+    async def _analyze_with_ai(self, resume_text: str) -> Dict[str, Any]:
 
         prompt = f"""
             You are an expert resume reviewer with 20 years of HR experience at top tech companies.
@@ -110,9 +111,9 @@ class ResumeAnalyzer:
         )
 
         try:
-            analysis = ResumeAIAnalysis.model_validate_json(response.text)
-
-            return analysis
+            data = json.loads(response.text)
+            analysis = ResumeAIAnalysis.model_validate(data)
+            return analysis.model_dump()
         except Exception as e:
             logger.error(f"AI analysis failed: {e}")
             raise

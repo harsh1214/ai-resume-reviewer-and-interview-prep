@@ -9,12 +9,14 @@ import {
     IconX,
     IconLoader2,
 } from '@tabler/icons-react'
+import { api } from '@/lib/api'
 
 interface ResumeUploadProps {
-    onUpload: (file: File) => void
+    onUpload: (resumeId: number) => void
 }
 
 export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
+
     const [file, setFile] = useState<File | null>(null)
     const [dragActive, setDragActive] = useState(false)
     const [uploading, setUploading] = useState(false)
@@ -67,9 +69,11 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
         if (!file) return
 
         setUploading(true)
-        await new Promise((resolve) => setTimeout(resolve, 2000))
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await api.post('/api/resume/upload', formData, { headers: { "Content-Type": "multipart/form-data" } });
         setUploading(false)
-        onUpload(file)
+        onUpload(res.data.id)
         setFile(null)
     }
 
@@ -80,43 +84,21 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
     return (
         <div className="w-full">
             {!file ? (
-                <div
-                    className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${dragActive
-                            ? 'border-orange-500 bg-orange-500/10 glow-orange'
-                            : 'border-border hover:border-orange-500/50'
-                        }`}
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                >
+                <div  onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop} className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all ${dragActive ? 'border-orange-500 bg-orange-500/10 glow-orange' : 'border-border hover:border-orange-500/50'}`}>
                     <div className="flex flex-col items-center">
                         <div className="w-20 h-20 bg-linear-to-r from-orange-500/20 to-purple-600/20 rounded-full flex items-center justify-center text-4xl text-orange-400 mb-4">
                             <IconUpload size={32} />
                         </div>
-                        <h3 className="text-xl font-semibold text-white mb-2">
-                            Upload Your Resume
-                        </h3>
-                        <p className="text-gray-200 mb-4">
-                            Drag & drop or click to upload (PDF or DOCX)
-                        </p>
+                        <h3 className="text-xl font-semibold text-white mb-2">Upload Your Resume</h3>
+                        <p className="text-gray-200 mb-4">Drag & drop or click to upload (PDF or DOCX)</p>
                         <label className="bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all cursor-pointer">
                             Choose File
-                            <input
-                                type="file"
-                                className="hidden"
-                                onChange={handleChange}
-                                accept=".pdf,.docx"
-                            />
+                            <input type="file" className="hidden" onChange={handleChange} accept=".pdf,.docx" />
                         </label>
                     </div>
                 </div>
             ) : (
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-card-bg rounded-2xl shadow-lg p-6 border border-border"
-                >
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card-bg rounded-2xl shadow-lg p-6 border border-border">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                             {file.type === 'application/pdf' ? (
@@ -131,22 +113,12 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
                                 </p>
                             </div>
                         </div>
-                        <button
-                            onClick={removeFile}
-                            className="text-gray-400 hover:text-red-400 transition-colors"
-                        >
+                        <button onClick={removeFile} className="text-gray-400 hover:text-red-400 transition-colors">
                             <IconX size={24} />
                         </button>
                     </div>
 
-                    <button
-                        onClick={handleUpload}
-                        disabled={uploading}
-                        className={`w-full mt-4 py-3 rounded-lg text-white font-semibold transition-all flex items-center justify-center space-x-2 ${uploading
-                                ? 'bg-gray-700 cursor-not-allowed'
-                                : 'bg-linear-to-r from-orange-500 to-purple-600 hover:shadow-lg hover:shadow-orange-500/25'
-                            }`}
-                    >
+                    <button onClick={handleUpload} disabled={uploading} className={`w-full mt-4 py-3 rounded-lg text-white font-semibold transition-all flex items-center justify-center cursor-pointer space-x-2 ${uploading ? 'bg-gray-700 cursor-not-allowed' : 'bg-linear-to-r from-orange-500 to-purple-600 hover:shadow-lg hover:shadow-orange-500/25'}`}>
                         {uploading ? (
                             <>
                                 <IconLoader2 className="animate-spin" size={20} />

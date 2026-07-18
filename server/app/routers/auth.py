@@ -85,7 +85,7 @@ async def refresh_token(refresh_data: RefreshTokenRequest, db: AsyncSession = De
                 detail="Invalid token type"
             )
 
-        user_id = payload.get("sub")
+        user_id = int(payload.get("sub"))
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

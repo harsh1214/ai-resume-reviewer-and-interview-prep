@@ -40,7 +40,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden lg:flex items-center space-x-8">
                         {navLinks.map((link) => {
                             const Icon = link.icon
                             return (
@@ -82,7 +82,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="md:hidden flex items-center">
+                    <div className="lg:hidden flex items-center">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="text-gray-400 hover:text-orange-400 p-2 transition-colors"
@@ -95,7 +95,7 @@ export default function Navbar() {
 
             {/* Mobile Navigation */}
             {isOpen && (
-                <div className="md:hidden bg-card-bg border-t border-border">
+                <div className="lg:hidden bg-card-bg border-t border-border">
                     <div className="px-2 pt-2 pb-3 space-y-1">
                         {navLinks.map((link) => {
                             const Icon = link.icon

@@ -1,3 +1,4 @@
+from google import genai
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,8 +11,10 @@ from app.config import settings
 from app.database import engine, Base, get_db
 import app.models
 from app.routers import auth, resume
+
 # from app.routers import auth, resume, interview, chat
 from app.utils.storage import setup_storage
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,12 +32,13 @@ async def lifespan(app: FastAPI):
 
     logger.info("Shutting down...")
 
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     lifespan=lifespan,
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # CORS
@@ -60,7 +64,7 @@ async def root():
     return {
         "message": "AI Resume Reviewer API",
         "version": settings.APP_VERSION,
-        "docs": "/docs"
+        "docs": "/docs",
     }
 
 @app.get("/health")

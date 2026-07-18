@@ -15,6 +15,7 @@ class Resume(Base):
     file_size = Column(Integer, nullable=True)
     file_type = Column(String(50), nullable=True)
     version = Column(Integer, default=1)
+    stored_filename = Column(String(255), nullable=True)
 
     # Analysis results
     ats_score = Column(Float, nullable=True)

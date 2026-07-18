@@ -44,9 +44,9 @@ class Settings(BaseSettings):
     ]
 
     # AI Settings
-    AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.7"))
-    AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "2048"))
-    AI_MODEL: str = os.getenv("AI_MODEL", "gemini-2.5-flash")
+    AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.3"))
+    AI_MAX_TOKENS: int = int(os.getenv("AI_MAX_TOKENS", "4096"))
+    AI_MODEL: str = os.getenv("AI_MODEL", "gemini-3.5-flash")
 
     # Mail Setup
     MAIL_USERNAME: str = os.getenv("MAIL_USERNAME")
