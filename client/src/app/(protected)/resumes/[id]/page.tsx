@@ -48,6 +48,7 @@ interface AnalysisResults {
 
 interface ResumeResponse {
     id: number;
+    resume_id: string;
     filename: string;
     file_url: string;
     ats_score: number;
@@ -87,7 +88,6 @@ export default function ResumeAnalysisPage() {
             try {
                 const res = await api.get(`/api/resume/${resumeId}`);
                 setResult(res.data);
-                console.log('Analysis Results:', res.data);
             } catch (error) {
                 console.error(error);
                 toast.error('Failed to fetch resume');
@@ -238,8 +238,9 @@ export default function ResumeAnalysisPage() {
                         </button> */}
                         <Link href="/resumes/upload" className="inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white font-semibold py-2.5 px-5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all">
                             <IconFileText size={18} />
-                            Analyze New Resume
+                            New Analysis
                         </Link>
+                        <Link href="/resumes/" className="inline-flex items-center gap-2 bg-card-bg border border-border text-gray-300 font-semibold py-2.5 px-5 rounded-lg hover:bg-card-hover transition-all">View All</Link>
                     </div>
                 </motion.div>
 

@@ -15,7 +15,7 @@ export default function Resumes() {
     const router = useRouter();
     const [error, setError] = useState(false);
 
-    const handleUpload = async (resumeId: number) => {
+    const handleUpload = async (resumeId: string) => {
         setAnalyzing(true)
         try {
             const res = await api.post(`/api/resume/analyze/${resumeId}`)

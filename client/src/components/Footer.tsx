@@ -33,8 +33,8 @@ export default function Footer() {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/resumes/upload" className="text-gray-400 hover:text-orange-400 transition-colors">
-                                    Upload Resume
+                                <Link href="/resumes" className="text-gray-400 hover:text-orange-400 transition-colors">
+                                    Resumes
                                 </Link>
                             </li>
                             <li>

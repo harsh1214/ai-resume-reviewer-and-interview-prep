@@ -1,234 +1,307 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-    // IconUpload,
-    IconFileText,
-    IconChartBar,
-    IconCheck,
-    IconX,
-    IconAlertCircle,
-    IconBrain,
-    IconStar,
-    IconTarget,
+import { 
+    IconUpload, 
+    IconFileText, 
+    IconChartBar, 
+    IconCalendar, 
+    IconClock, 
+    IconEye, 
+    IconTrash,
+    IconFileDelta,
+    IconFileWord
 } from '@tabler/icons-react'
-import ResumeUpload from '@/components/ResumeUpload'
+import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { api } from '@/lib/api';
 
-interface AnalysisResult {
-    atsScore: number
-    strengths: string[]
-    weaknesses: string[]
-    suggestions: string[]
-    keywords: string[]
+interface Resume {
+    id: number;
+    resume_id: string;
+    user_id: string;
+    filename: string;
+    file_url: string;
+    file_size: number;
+    file_type: string;
+    ats_score: number;
+    content_score: number;
+    skills_score: number;
+    formatting_score: number;
+    status: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export default function Resumes() {
-    const [analyzing, setAnalyzing] = useState(false)
-    const [result, setResult] = useState<AnalysisResult | null>(null)
+    const [resumes, setResumes] = useState<Resume[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [deleting, setDeleting] = useState<string | null>(null);
 
-    const handleUpload = async (
-        // file: File
-        ) => {
-        setAnalyzing(true)
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-        setAnalyzing(false)
-        setResult({
-            atsScore: 78,
-            strengths: [
-                'Strong work experience section',
-                'Good use of action verbs',
-                'Clear career progression',
-            ],
-            weaknesses: [
-                'Missing keywords for ATS',
-                'Length could be optimized',
-                'Summary section needs improvement',
-            ],
-            suggestions: [
-                'Add more industry-specific keywords',
-                'Quantify achievements with numbers',
-                'Improve formatting for better readability',
-            ],
-            keywords: ['React', 'TypeScript', 'AWS', 'Docker', 'CI/CD'],
-        })
-    }
+    useEffect(() => {
+        const fetchResumes = async () => {
+            setLoading(true);
+            try {
+                const response = await api.get('/api/resume/get/resumes');
+                setResumes(response.data);
+                console.log(response.data)
+            } catch (error) {
+                console.error('Error fetching resumes:', error);
+                toast.error('Failed to fetch resumes');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchResumes();
+    }, []);
 
-    if (analyzing) {
+
+    const handleDelete = async (resume_id: string) => {
+        if (!confirm('Are you sure you want to delete this resume?')) return;
+        
+        setDeleting(resume_id);
+        try {
+            await api.delete(`/api/resume/${resume_id}`);
+            toast.success('Resume deleted successfully');
+            setResumes(resumes.filter(r => r.resume_id !== resume_id));
+        } catch (error) {
+            console.error('Error deleting resume:', error);
+            toast.error('Failed to delete resume');
+        } finally {
+            setDeleting(null);
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
+    const formatFileSize = (bytes: number) => {
+        if (!bytes) return 'Unknown';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+
+    const getStatusBadge = (status: string) => {
+        const statusMap = {
+            'pending': { color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', label: 'Pending' },
+            'analyzing': { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', label: 'Analyzing' },
+            'completed': { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: 'Completed' },
+            'failed': { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'Failed' },
+        };
+        return statusMap[status as keyof typeof statusMap] || statusMap['pending'];
+    };
+
+    const getFileIcon = (filename: string) => {
+        const ext = filename.split('.').pop()?.toLowerCase();
+        if (ext === 'pdf') return <IconFileDelta className="text-red-400" size={24} />;
+        if (ext === 'docx') return <IconFileWord className="text-blue-400" size={24} />;
+        return <IconFileText className="text-gray-400" size={24} />;
+    };
+
+    if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center py-12">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-500 border-t-transparent mx-auto mb-4"></div>
-                    <h2 className="text-2xl font-semibold text-white">
-                        Analyzing Your Resume
-                    </h2>
-                    <p className="text-gray-400 mt-2">
-                        Our AI is reviewing your resume...
-                    </p>
+            <div className="bg-background min-h-screen py-12">
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-center h-96">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent mx-auto"></div>
+                            <p className="text-gray-400 mt-4">Loading your resumes...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        )
+        );
     }
 
     return (
-        <div className="bg-background flex items-center justify-center">
+        <div className="bg-background w-full relative">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 lg:py-20 py-12">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }} 
                     transition={{ duration: 0.5 }}
                 >
-                    <div className="text-center mb-12">
-                        <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                            Resume Analysis
-                        </h1>
-                        <p className="text-xl text-gray-400">
-                            Upload your resume for AI-powered analysis
-                        </p>
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white">Resumes</h1>
+                            <p className="text-gray-400 mt-1">
+                                {resumes.length === 0 
+                                    ? 'No resumes uploaded yet' 
+                                    : `${resumes.length} resume${resumes.length > 1 ? 's' : ''} analyzed`
+                                }
+                            </p>
+                        </div>
+                        <Link href="/resumes/upload" className="inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-5 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold">
+                            <IconUpload size={18} />
+                            <span>New Analysis</span>
+                        </Link>
                     </div>
 
-                    {!result ? (
-                        <div className="max-w-3xl mx-auto">
-                            <ResumeUpload onUpload={handleUpload} />
-                        </div>
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
-                        >
-                            {/* Score Card */}
-                            <div className="bg-card-bg rounded-2xl shadow-lg p-8 border border-border">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">ATS Score</h3>
-                                    <IconChartBar className="text-orange-400" size={24} />
-                                </div>
-                                <div className="relative w-48 h-48 mx-auto mb-6">
-                                    <svg className="w-full h-full" viewBox="0 0 100 100">
-                                        <circle
-                                            className="text-border stroke-current"
-                                            strokeWidth="8"
-                                            cx="50"
-                                            cy="50"
-                                            r="40"
-                                            fill="none"
-                                        />
-                                        <circle
-                                            className="text-orange-500 stroke-current"
-                                            strokeWidth="8"
-                                            cx="50"
-                                            cy="50"
-                                            r="40"
-                                            fill="none"
-                                            strokeDasharray={251.2}
-                                            strokeDashoffset={251.2 - (251.2 * result.atsScore) / 100}
-                                            transform="rotate(-90 50 50)"
-                                        />
-                                    </svg>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-4xl font-bold text-orange-400">
-                                            {result.atsScore}%
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-gray-400">
-                                        {result.atsScore >= 80
-                                            ? 'Excellent! Your resume is well-optimized.'
-                                            : result.atsScore >= 60
-                                                ? 'Good! Some improvements needed.'
-                                                : 'Needs significant improvement.'}
-                                    </p>
-                                </div>
+                    {/* Stats Summary */}
+                    {resumes.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <p className="text-sm text-gray-400">Total Resumes</p>
+                                <p className="text-2xl font-bold text-white">{resumes.length}</p>
                             </div>
-
-                            {/* Keywords */}
-                            <div className="bg-card-bg rounded-2xl shadow-lg p-8 border border-border">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">Key Keywords</h3>
-                                    <IconTarget className="text-purple-400" size={24} />
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {result.keywords.map((keyword, index) => (
-                                        <span
-                                            key={index}
-                                            className="bg-linear-to-r from-orange-500/20 to-purple-600/20 text-orange-400 px-4 py-2 rounded-full text-sm font-medium border border-orange-500/30"
-                                        >
-                                            {keyword}
-                                        </span>
-                                    ))}
-                                </div>
-                                <p className="mt-4 text-sm text-gray-400">
-                                    Include these keywords to improve ATS compatibility
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <p className="text-sm text-gray-400">Completed</p>
+                                <p className="text-2xl font-bold text-green-400">
+                                    {resumes.filter(r => r.status === 'completed').length}
                                 </p>
                             </div>
-
-                            {/* Strengths */}
-                            <div className="bg-card-bg rounded-2xl shadow-lg p-8 border border-border">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">Strengths</h3>
-                                    <IconCheck className="text-green-400" size={24} />
-                                </div>
-                                <ul className="space-y-3">
-                                    {result.strengths.map((strength, index) => (
-                                        <li key={index} className="flex items-start space-x-3">
-                                            <IconCheck className="text-green-400 mt-1" size={18} />
-                                            <span className="text-gray-300">{strength}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <p className="text-sm text-gray-400">Average ATS Score</p>
+                                <p className="text-2xl font-bold text-orange-400">
+                                    {resumes.filter(r => r.ats_score).length > 0
+                                        ? Math.round(resumes.filter(r => r.ats_score).reduce((acc, r) => acc + (r.ats_score || 0), 0) / resumes.filter(r => r.ats_score).length)
+                                        : '—'}
+                                    {resumes.filter(r => r.ats_score).length > 0 && '%'}
+                                </p>
                             </div>
-
-                            {/* Weaknesses */}
-                            <div className="bg-card-bg rounded-2xl shadow-lg p-8 border border-border">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">Areas for Improvement</h3>
-                                    <IconAlertCircle className="text-yellow-400" size={24} />
-                                </div>
-                                <ul className="space-y-3">
-                                    {result.weaknesses.map((weakness, index) => (
-                                        <li key={index} className="flex items-start space-x-3">
-                                            <IconX className="text-red-400 mt-1" size={18} />
-                                            <span className="text-gray-300">{weakness}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <p className="text-sm text-gray-400">Pending Analysis</p>
+                                <p className="text-2xl font-bold text-yellow-400">
+                                    {resumes.filter(r => r.status === 'pending' || r.status === 'analyzing').length}
+                                </p>
                             </div>
+                        </div>
+                    )}
 
-                            {/* Suggestions */}
-                            <div className="lg:col-span-2 bg-linear-to-r from-orange-900/20 to-purple-900/20 rounded-2xl shadow-lg p-8 border border-border">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">AI Suggestions</h3>
-                                    <IconBrain className="text-purple-400" size={24} />
-                                </div>
-                                <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {result.suggestions.map((suggestion, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex items-start space-x-3 bg-background p-4 rounded-lg border border-border"
-                                        >
-                                            <IconStar className="text-yellow-400 mt-1" size={18} />
-                                            <span className="text-sm text-gray-300">{suggestion}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                    {/* Resume Cards Grid */}
+                    {resumes.length === 0 ? (
+                        <div className="p-12 text-center max-w-3xl mx-auto">
+                            <div className="w-20 h-20 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                                <IconFileText className="text-orange-400" size={32} />
                             </div>
+                            <h3 className="text-xl font-semibold text-white mb-2">No Resumes Yet</h3>
+                            <p className="text-gray-400 mb-6">Upload your first resume to get AI-powered analysis</p>
+                            <Link href="/resumes/upload" className="inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold">
+                                <IconUpload size={18} />
+                                <span>Upload Resume</span>
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {resumes.map((resume, index) => {
+                                const status = getStatusBadge(resume.status);
+                                const isCompleted = resume.status === 'completed';
+                                
+                                return (
+                                    <motion.div
+                                        key={resume.resume_id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        className="bg-card-bg rounded-2xl border border-border hover:border-orange-500/30 transition-all hover:shadow-lg hover:shadow-orange-500/5 group"
+                                    >
+                                        <div className="p-5">
+                                            {/* File Info */}
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 rounded-lg bg-background border border-border">
+                                                        {getFileIcon(resume.filename)}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-semibold text-white truncate" title={resume.filename}>
+                                                            {resume.filename}
+                                                        </h3>
+                                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                            <span>{formatFileSize(resume.file_size)}</span>
+                                                            <span>•</span>
+                                                            <span className="uppercase">{resume.file_type?.replace('.', '') || 'Unknown'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span className={`text-xs px-2.5 py-1 rounded-full border ${status.color}`}>
+                                                    {status.label}
+                                                </span>
+                                            </div>
 
-                            {/* Actions */}
-                            <div className="lg:col-span-2 flex justify-center space-x-4 mt-4">
-                                <button className="bg-linear-to-r from-orange-500 to-purple-600 text-white px-8 py-3 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold flex items-center space-x-2">
-                                    <IconFileText size={18} />
-                                    <span>Generate Interview Questions</span>
-                                </button>
-                                <button className="bg-border text-gray-300 px-8 py-3 rounded-lg hover:bg-[#3a4050] transition-colors font-semibold">
-                                    Download Report
-                                </button>
-                            </div>
-                        </motion.div>
+                                            {/* Score & Date */}
+                                            <div className="flex items-center justify-between text-sm mb-3">
+                                                <div className="flex items-center gap-2 text-gray-400">
+                                                    <IconCalendar size={14} />
+                                                    <span>{formatDate(resume.created_at)}</span>
+                                                </div>
+                                                {isCompleted && resume.ats_score !== null && (
+                                                    <div className="flex items-center gap-1.5">
+                                                        <IconChartBar size={14} className="text-orange-400" />
+                                                        <span className="font-semibold text-orange-400">{resume.ats_score}%</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Score Breakdown (if completed) */}
+                                            {isCompleted && resume.ats_score !== null && (
+                                                <div className="flex gap-2 mb-4">
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-xs text-gray-400 mb-0.5">
+                                                            <span>Content</span>
+                                                            <span>{resume.content_score || 0}%</span>
+                                                        </div>
+                                                        <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+                                                            <div className="h-full bg-orange-500 rounded-full" style={{ width: `${resume.content_score || 0}%` }} />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between text-xs text-gray-400 mb-0.5">
+                                                            <span>Skills</span>
+                                                            <span>{resume.skills_score || 0}%</span>
+                                                        </div>
+                                                        <div className="w-full h-1 bg-border rounded-full overflow-hidden">
+                                                            <div className="h-full bg-purple-500 rounded-full" style={{ width: `${resume.skills_score || 0}%` }} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-2 pt-3 border-t border-border">
+                                                {isCompleted ? (
+                                                    <Link
+                                                        href={`/resumes/${resume.resume_id}`}
+                                                        className="flex-1 inline-flex items-center justify-center gap-1.5 bg-linear-to-r from-orange-500 to-purple-600 text-white text-sm font-medium py-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
+                                                    >
+                                                        <IconEye size={16} />
+                                                        <span>View Analysis</span>
+                                                    </Link>
+                                                ) : (
+                                                    <div className="flex-1 flex items-center justify-center gap-1.5 bg-background text-gray-400 text-sm font-medium py-2 rounded-lg border border-border">
+                                                        <IconClock size={16} className="animate-pulse" />
+                                                        <span>Processing...</span>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => handleDelete(resume.resume_id)}
+                                                    disabled={deleting === resume.resume_id}
+                                                    className="p-2 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50"
+                                                    title="Delete resume"
+                                                >
+                                                    {deleting === resume.resume_id ? (
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400 border-t-transparent" />
+                                                    ) : (
+                                                        <IconTrash size={18} />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
                     )}
                 </motion.div>
             </div>
         </div>
-    )
+    );
 }

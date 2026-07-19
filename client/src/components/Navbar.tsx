@@ -15,7 +15,7 @@ export default function Navbar() {
     const navLinks = [
         { href: '/', label: 'Home', icon: IconHome },
         { href: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
-        { href: '/resumes/upload', label: 'Upload Resume', icon: IconFileAnalytics },
+        { href: '/resumes', label: 'Resumes', icon: IconFileAnalytics },
         { href: '/interview', label: 'Interview Practice', icon: IconMessageChatbot },
         { href: '/history', label: 'History', icon: IconHistory },
     ]

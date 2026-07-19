@@ -131,8 +131,8 @@ export default function InterviewPractice() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Chat Area */}
-                        <div className="lg:col-span-2 bg-card-bg rounded-2xl shadow-lg overflow-hidden border border-border">
-                            <div className="p-4 bg-linear-to-r from-orange-500 to-purple-600">
+                        <div className="lg:col-span-2 bg-card-bg rounded-2xl shadow-lg overflow-hidden border border-border flex flex-col items-center justify-between w-full">
+                            <div className="p-4 bg-linear-to-r from-orange-500 to-purple-600 w-full">
                                 <div className="flex items-center space-x-3 text-white">
                                     <IconMessageChatbot size={24} />
                                     <span className="font-semibold">AI Interview Coach</span>
@@ -140,11 +140,11 @@ export default function InterviewPractice() {
                                 </div>
                             </div>
 
-                            <div className="h-96 overflow-y-auto p-4 space-y-4">
+                            <div className="h-full max-h-132 min-h-96 overflow-y-auto p-4 space-y-4 w-full">
                                 {messages.map((message) => (
                                     <div
                                         key={message.id}
-                                        className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'
+                                        className={`w-full flex ${message.type === 'user' ? 'justify-end' : 'justify-start'
                                             }`}
                                     >
                                         <div
@@ -159,7 +159,7 @@ export default function InterviewPractice() {
                                 ))}
                             </div>
 
-                            <div className="p-4 border-t border-border">
+                            <div className="p-4 border-t border-border w-full">
                                 <div className="flex items-center space-x-2">
                                     <button
                                         className={`p-2 rounded-lg transition-colors ${isRecording

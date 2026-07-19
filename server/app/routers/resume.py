@@ -7,7 +7,7 @@ from loguru import logger
 from app.database import get_db
 from app.models.user import User
 from app.models.resume import Resume
-from app.schemas.resume import (ResumeAnalysisResponse, ResumeListResponse)
+from app.schemas.resume import (ResumeAnalysisResponse, ResumeListResponse, ResumeListResponseList)
 from app.utils.security import get_current_user
 from app.utils.storage import (save_file_locally, get_file_url, generate_unique_filename, is_allowed_file, get_file_extension)
 from app.services.resume_analyzer import ResumeAnalyzer
@@ -49,13 +49,14 @@ async def upload_resume(file: UploadFile = File(...), current_user: User = Depen
 
     return {
         "id": resume.id,
+        "resume_id": resume.resume_id,
         "message": "Resume uploaded successfully",
         "status": "pending"
     }
 
 @router.post("/analyze/{resume_id}")
-async def analyze_resume(resume_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Resume).where(Resume.id == resume_id,Resume.user_id == current_user.id))
+async def analyze_resume(resume_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Resume).where(Resume.resume_id == resume_id, Resume.user_id == current_user.id))
     resume = result.scalar_one_or_none()
 
     if not resume:
@@ -86,7 +87,7 @@ async def analyze_resume(resume_id: int, current_user: User = Depends(get_curren
 
         return {
             "status": "success",
-            "resume_id": resume.id,
+            "resume_id": resume.resume_id,
         }
 
     except Exception as e:
@@ -103,8 +104,8 @@ async def get_resumes(current_user: User = Depends(get_current_user), db: AsyncS
     return result.scalars().all()
 
 @router.get("/{resume_id}", response_model=ResumeAnalysisResponse)
-async def get_resume(resume_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Resume).where(Resume.id == resume_id, Resume.user_id == current_user.id))
+async def get_resume(resume_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Resume).where(Resume.resume_id  == resume_id, Resume.user_id == current_user.id))
     resume = result.scalar_one_or_none()
 
     if not resume:
@@ -112,9 +113,20 @@ async def get_resume(resume_id: int, current_user: User = Depends(get_current_us
 
     return resume
 
+@router.get("/get/resumes", response_model=List[ResumeListResponseList])
+async def get_users_resume(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    try:
+        result = await db.execute(select(Resume).where(Resume.user_id == current_user.id).order_by(desc(Resume.created_at)))
+        resumes = result.scalars().all()
+
+        return resumes
+    except Exception as e:
+        logger.error(f"Error fetching resumes: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch resumes")
+
 @router.delete("/{resume_id}")
-async def delete_resume(resume_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Resume).where(Resume.id == resume_id, Resume.user_id == current_user.id))
+async def delete_resume(resume_id: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Resume).where(Resume.resume_id  == resume_id, Resume.user_id == current_user.id))
     resume = result.scalar_one_or_none()
     
     if not resume:

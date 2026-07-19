@@ -12,7 +12,7 @@ import {
 import { api } from '@/lib/api'
 
 interface ResumeUploadProps {
-    onUpload: (resumeId: number) => void
+    onUpload: (resumeId: string) => void
 }
 
 export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
@@ -38,11 +38,7 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
 
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0]
-            if (
-                file.type === 'application/pdf' ||
-                file.type ===
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            ) {
+            if (file.type === 'application/pdf' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 setFile(file)
             } else {
                 alert('Please upload a PDF or DOCX file')
@@ -53,11 +49,7 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            if (
-                file.type === 'application/pdf' ||
-                file.type ===
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            ) {
+            if (file.type === 'application/pdf' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
                 setFile(file)
             } else {
                 alert('Please upload a PDF or DOCX file')
@@ -73,7 +65,7 @@ export default function ResumeUpload({ onUpload }: ResumeUploadProps) {
         formData.append('file', file);
         const res = await api.post('/api/resume/upload', formData, { headers: { "Content-Type": "multipart/form-data" } });
         setUploading(false)
-        onUpload(res.data.id)
+        onUpload(res.data.resume_id)
         setFile(null)
     }
 
