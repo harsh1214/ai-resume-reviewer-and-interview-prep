@@ -169,11 +169,6 @@ export default function Landing() {
                                     <div className="w-24 h-24 bg-linear-to-r from-orange-500/20 to-purple-600/20 rounded-full flex items-center justify-center text-4xl text-orange-400 mx-auto mb-6">
                                         {item.icon}
                                     </div>
-                                    {/* {index < steps.length - 1 && (
-                                        <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-linear-to-r from-orange-500/30 to-purple-600/30">
-                                            <div className="absolute right-0 -top-1.5 w-3 h-3 bg-orange-400 rotate-45"></div>
-                                        </div>
-                                    )} */}
                                 </div>
                                 <div className="inline-block bg-linear-to-r from-orange-500/20 to-purple-600/20 text-orange-400 px-3 py-1 rounded-full text-sm font-semibold mb-2">
                                     Step {item.step}
