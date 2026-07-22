@@ -157,12 +157,7 @@ export default function InterviewDashboard() {
     return (
         <div className="bg-background py-8 lg:py-12">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    {/* Header */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                         <div>
                             <h1 className="text-3xl font-bold text-white">Interview Practice</h1>
@@ -178,7 +173,6 @@ export default function InterviewDashboard() {
                         </button>
                     </div>
 
-                    {/* Stats Summary */}
                     {sessions.length > 0 && (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                             <div className="bg-card-bg rounded-xl p-4 border border-border">
@@ -223,7 +217,6 @@ export default function InterviewDashboard() {
                         </div>
                     )}
 
-                    {/* Start New Interview */}
                     <div className="bg-card-bg rounded-2xl border border-border p-6 mb-8">
                         <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                             <IconMessageChatbot className="text-orange-400" size={24} />
@@ -234,11 +227,7 @@ export default function InterviewDashboard() {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Select Resume
                                 </label>
-                                <select
-                                    value={selectedResume}
-                                    onChange={(e) => setSelectedResume(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                >
+                                <select value={selectedResume} onChange={(e) => setSelectedResume(e.target.value)} className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500">
                                     <option value="">Choose a resume...</option>
                                     {resumes.map((resume) => (
                                         <option key={resume.resume_id} value={resume.resume_id}>
@@ -251,13 +240,7 @@ export default function InterviewDashboard() {
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Role / Position
                                 </label>
-                                <input
-                                    type="text"
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value)}
-                                    placeholder="e.g., Software Engineer"
-                                    className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
-                                />
+                                <input type="text" value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g., Software Engineer" className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500" />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -265,26 +248,14 @@ export default function InterviewDashboard() {
                                 </label>
                                 <div className="grid sm:grid-cols-3 grid-cols-1 gap-2">
                                     {['Easy', 'Medium', 'Hard'].map((level) => (
-                                        <button
-                                            key={level}
-                                            onClick={() => setDifficulty(level.toLowerCase())}
-                                            className={`px-3 py-2 rounded-lg transition-all ${
-                                                difficulty === level.toLowerCase()
-                                                    ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white'
-                                                    : 'bg-background border border-border text-gray-400 hover:border-orange-500/30'
-                                            }`}
-                                        >
+                                        <button key={level} onClick={() => setDifficulty(level.toLowerCase())} className={`px-3 py-2 rounded-lg transition-all ${difficulty === level.toLowerCase() ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white' : 'bg-background border border-border text-gray-400 hover:border-orange-500/30'}`}>
                                             {level}
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         </div>
-                        <button
-                            onClick={startInterview}
-                            disabled={isStarting || !selectedResume || !role}
-                            className="mt-4 inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
+                        <button onClick={startInterview} disabled={isStarting || !selectedResume || !role} className="mt-4 inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
                             {isStarting ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -300,7 +271,6 @@ export default function InterviewDashboard() {
                         </button>
                     </div>
 
-                    {/* Interview History */}
                     <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                         <IconList className="text-purple-400" size={24} />
                         Interview History
@@ -322,12 +292,7 @@ export default function InterviewDashboard() {
                                 const isCompleted = session.status === 'completed'
                                 
                                 return (
-                                    <motion.div
-                                        key={session.session_id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="bg-card-bg rounded-2xl border border-border hover:border-orange-500/30 transition-all p-5"
-                                    >
+                                    <motion.div key={session.session_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card-bg rounded-2xl border border-border hover:border-orange-500/30 transition-all p-5">
                                         <div className="flex md:flex-row flex-col flex-wrap items-start justify-between gap-4">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center flex-wrap gap-3 mb-6">
@@ -371,18 +336,12 @@ export default function InterviewDashboard() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {session.status === 'active' ? (
-                                                    <Link
-                                                        href={`/interview/${session.session_id}`}
-                                                        className="inline-flex items-center gap-1.5 bg-linear-to-r from-orange-500 to-purple-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
-                                                    >
+                                                    <Link href={`/interview/${session.session_id}`} className="inline-flex items-center gap-1.5 bg-linear-to-r from-orange-500 to-purple-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all">
                                                         <IconEye size={16} />
                                                         Continue
                                                     </Link>
                                                 ) : (
-                                                    <Link
-                                                        href={`/interview/${session.session_id}`}
-                                                        className="inline-flex items-center gap-1.5 bg-card-bg border border-border text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-card-hover transition-all"
-                                                    >
+                                                    <Link href={`/interview/${session.session_id}`} className="inline-flex items-center gap-1.5 bg-card-bg border border-border text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-card-hover transition-all">
                                                         <IconEye size={16} />
                                                         View Results
                                                     </Link>

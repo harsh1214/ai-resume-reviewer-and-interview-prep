@@ -230,17 +230,12 @@ export default function ActiveInterview() {
         const recommendations = session.recommendations || []
         
         return (
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card-bg rounded-2xl border border-border p-6 mt-6"
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card-bg rounded-2xl border border-border p-6 mt-6">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-6">
                     <IconDeviceAnalytics className="text-orange-400" size={28} />
                     Interview Results
                 </h2>
 
-                {/* Score */}
                 <div className="bg-background rounded-xl p-6 border border-border mb-6">
                     <div className="flex sm:flex-row flex-col items-center justify-between gap-8">
                         <div>
@@ -309,17 +304,11 @@ export default function ActiveInterview() {
                 </div>
 
                 <div className="flex sm:flex-row flex-col items-center justify-center gap-3 mt-6 pt-4 border-t border-border">
-                    <Link
-                        href="/interview"
-                        className="inline-flex items-center gap-2 bg-card-bg border border-border text-gray-300 px-6 py-2.5 rounded-lg hover:bg-card-hover transition-colors"
-                    >
+                    <Link href="/interview" className="inline-flex items-center gap-2 bg-card-bg border border-border text-gray-300 px-6 py-2.5 rounded-lg hover:bg-card-hover transition-colors">
                         <IconArrowLeft size={18} />
                         Back to Interviews
                     </Link>
-                    <Link
-                        href={`/interview?start=true`}
-                        className="inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
-                    >
+                    <Link href={`/interview?start=true`} className="inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all">
                         <IconMessageChatbot size={18} />
                         New Interview
                     </Link>
@@ -345,10 +334,7 @@ export default function ActiveInterview() {
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-white">Interview Not Found</h2>
                     <p className="text-gray-400 mt-2">The interview session could not be found</p>
-                    <Link
-                        href="/interview"
-                        className="mt-4 inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
-                    >
+                    <Link href="/interview" className="mt-4 inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all">
                         <IconArrowLeft size={18} />
                         Back to Interviews
                     </Link>
@@ -361,10 +347,7 @@ export default function ActiveInterview() {
         return (
             <div className="bg-background py-8">
                 <div className="container mx-auto px-4">
-                    <Link
-                        href="/interview"
-                        className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
-                    >
+                    <Link href="/interview" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6">
                         <IconArrowLeft size={18} />
                         Back to Interviews
                     </Link>
@@ -377,13 +360,9 @@ export default function ActiveInterview() {
     return (
         <div className="bg-background py-8">
             <div className="container mx-auto px-4">
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <Link
-                            href="/interview"
-                            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2"
-                        >
+                        <Link href="/interview" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2">
                             <IconArrowLeft size={18} />
                             Back to Interviews
                         </Link>
@@ -399,10 +378,7 @@ export default function ActiveInterview() {
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-32 h-2 bg-border rounded-full overflow-hidden">
-                            <div
-                                className="h-full bg-linear-to-r from-orange-500 to-purple-600 rounded-full transition-all"
-                                style={{ width: `${((questionIndex + 1) / session.total_questions) * 100}%` }}
-                            />
+                            <div className="h-full bg-linear-to-r from-orange-500 to-purple-600 rounded-full transition-all" style={{ width: `${((questionIndex + 1) / session.total_questions) * 100}%` }} />
                         </div>
                         <span className="text-sm text-gray-400">
                             {Math.round(((questionIndex + 1) / session.total_questions) * 100)}%
@@ -410,7 +386,6 @@ export default function ActiveInterview() {
                     </div>
                 </div>
 
-                {/* Chat Area */}
                 <div className="bg-card-bg rounded-2xl border border-border overflow-hidden">
                     <div className="p-4 bg-linear-to-r from-orange-500/10 to-purple-600/10 border-b border-border">
                         <div className="flex items-center gap-3">
@@ -419,25 +394,11 @@ export default function ActiveInterview() {
                         </div>
                     </div>
 
-                    {/* Messages */}
                     <div className="h-125 overflow-y-auto p-4 space-y-4">
                         <AnimatePresence>
                             {messages.map((message) => (
-                                <motion.div
-                                    key={message.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                                >
-                                    <div
-                                        className={`max-w-[80%] p-4 rounded-lg ${
-                                            message.type === 'user'
-                                                ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white'
-                                                : message.type === 'system'
-                                                ? 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-400'
-                                                : 'bg-background text-gray-200 border border-border'
-                                        }`}
-                                    >
+                                <motion.div key={message.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] p-4 rounded-lg ${message.type === 'user' ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white' : message.type === 'system' ? 'bg-yellow-500/10 border border-yellow-500/30 text-yellow-400' : 'bg-background text-gray-200 border border-border'}`}>
                                         {message.isQuestion && (
                                             <div className="text-xs text-gray-400 mb-1">
                                                 Question {message.questionNumber}/{message.totalQuestions}
@@ -456,24 +417,11 @@ export default function ActiveInterview() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input Area */}
                     {!isComplete && (
                         <div className="p-4 border-t border-border">
                             <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    placeholder="Type your answer..."
-                                    disabled={isSending}
-                                    className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-500 disabled:opacity-50"
-                                />
-                                <button
-                                    onClick={sendAnswer}
-                                    disabled={isSending || !input.trim()}
-                                    className="bg-linear-to-r from-orange-500 to-purple-600 text-white p-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
+                                <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Type your answer..." disabled={isSending} className="flex-1 px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-500 disabled:opacity-50" />
+                                <button onClick={sendAnswer} disabled={isSending || !input.trim()} className="bg-linear-to-r from-orange-500 to-purple-600 text-white p-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                                     {isSending ? (
                                         <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
                                     ) : (
