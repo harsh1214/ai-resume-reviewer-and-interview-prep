@@ -35,4 +35,3 @@ class User(Base):
     # Relationships
     resumes = relationship("Resume", back_populates="user", cascade="all, delete-orphan")
     interview_sessions = relationship("InterviewSession", back_populates="user", cascade="all, delete-orphan")
-    chat_history = relationship("ChatHistory", back_populates="user", cascade="all, delete-orphan")

@@ -1,47 +1,85 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime
 
 class InterviewStartRequest(BaseModel):
+    resume_id: str
     role: str
     difficulty: str = "medium"
-    title: Optional[str] = None
 
-class InterviewSessionResponse(BaseModel):
-    id: int
-    title: Optional[str]
+class InterviewStartResponse(BaseModel):
+    session_id: str
     role: str
     difficulty: str
     status: str
-    average_score: Optional[float] = None
     total_questions: int
-    answered_questions: int
+    question: str
+    current_question: int
+
+class InterviewAnswerRequest(BaseModel):
+    current_question: int
+    question: str
+    answer: str
+
+class InterviewAnswerResponse(BaseModel):
+    answer_id: int
+    score: float
+    feedback: str
+    next_question: Optional[str] = None
+    interview_completed: bool = False
+    average_score: Optional[float] = None
+
+class InterviewSessionResponse(BaseModel):
+    session_id: str
+    role: str
+    difficulty: str
+    status: str
+    total_questions: int
+    current_question: int
+    average_score: Optional[float]
     created_at: datetime
     completed_at: Optional[datetime]
-    
+    questions: List[str]
+
     class Config:
         from_attributes = True
 
-class InterviewMessageRequest(BaseModel):
-    content: str
-
-class InterviewMessageResponse(BaseModel):
-    id: int
+class InterviewSessionResponseWithSWR(BaseModel):
+    session_id: str
     role: str
-    content: str
-    score: Optional[float] = None
-    feedback: Optional[str] = None
-    evaluation_metrics: Optional[Dict[str, Any]] = None
-    timestamp: datetime
-    
+    difficulty: str
+    status: str
+    total_questions: int
+    current_question: int
+    average_score: Optional[float]
+    created_at: datetime
+    strengths: List[str]
+    weaknesses: List[str]
+    recommendations: List[str]
+    completed_at: Optional[datetime]
+    questions: List[str]
+
     class Config:
         from_attributes = True
 
-class ChatMessageRequest(BaseModel):
-    thread_id: str
-    content: str
+class InterviewReportResponse(BaseModel):
+    average_score: float
+    strengths: List[str]
+    weaknesses: List[str]
+    recommendations: List[str]
 
-class ChatMessageResponse(BaseModel):
-    role: str
-    content: str
-    timestamp: datetime
+class EvaluationMetrics(BaseModel):
+    technical_accuracy: float
+    communication: float
+    problem_solving: float
+    confidence: float
+
+class AnswerEvaluation(BaseModel):
+    score: float
+    feedback: str
+    evaluation_metrics: EvaluationMetrics
+
+class InterviewFinalReport(BaseModel):
+    strengths: List[str]
+    weaknesses: List[str]
+    recommendations: List[str]

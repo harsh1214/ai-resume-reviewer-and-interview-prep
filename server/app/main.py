@@ -10,9 +10,7 @@ from sqlalchemy import text
 from app.config import settings
 from app.database import engine, Base, get_db
 import app.models
-from app.routers import auth, resume
-
-# from app.routers import auth, resume, interview, chat
+from app.routers import auth, resume, interview
 from app.utils.storage import setup_storage
 
 
@@ -56,8 +54,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Routers
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(resume.router, prefix="/api/resume", tags=["Resume Analysis"])
-# app.include_router(interview.router, prefix="/api/interview", tags=["Interview"])
-# app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
+app.include_router(interview.router, prefix="/api/interview", tags=["Interview"])
 
 @app.get("/")
 async def root():

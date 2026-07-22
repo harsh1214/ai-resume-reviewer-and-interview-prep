@@ -1,73 +1,43 @@
-from app.database import Base
-from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, JSON
+from sqlalchemy import ( Column, Integer, String, Float, DateTime, ForeignKey, JSON, Text )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from app.database import Base
 
 class InterviewSession(Base):
     __tablename__ = "interview_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
-    resume_id = Column(Integer, ForeignKey("resumes.id", ondelete="CASCADE"), nullable=False)
+    session_id = Column(String(36), unique=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-
-    # Session info
-    title = Column(String(255), nullable=True)
+    resume_id = Column(String(36), ForeignKey("resumes.resume_id", ondelete="CASCADE"), nullable=False)
     role = Column(String(100), nullable=False)
-    difficulty = Column(String(50), default="medium")  # easy, medium, hard
-    status = Column(String(50), default="active")  # active, completed, abandoned
-
-    # Performance metrics
+    difficulty = Column(String(20), default="medium")
+    status = Column(String(20), default="active")
+    total_questions = Column(Integer, default=5)
+    current_question = Column(Integer, default=0)
     average_score = Column(Float, nullable=True)
-    total_questions = Column(Integer, default=0)
-    answered_questions = Column(Integer, default=0)
-
-    # Metadata
+    questions = Column(JSON, nullable=False)
+    strengths = Column(JSON, nullable=True)
+    weaknesses = Column(JSON, nullable=True)
+    recommendations = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relationships
-    user = relationship("User", back_populates="interview_sessions")
-    messages = relationship("InterviewMessage", back_populates="session", cascade="all, delete-orphan")
+    user = relationship("User")
+    answers = relationship("InterviewAnswer", back_populates="session", cascade="all, delete-orphan")
 
-class InterviewMessage(Base):
-    __tablename__ = "interview_messages"
+class InterviewAnswer(Base):
+    __tablename__ = "interview_answers"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     session_id = Column(Integer, ForeignKey("interview_sessions.id", ondelete="CASCADE"), nullable=False)
-
-    # Message content
-    role = Column(String(50), nullable=False)  # user, assistant
-    content = Column(Text, nullable=False)
-    message_type = Column(String(50))
-
-    # Evaluation (for assistant messages)
-    score = Column(Float, nullable=True)
-    feedback = Column(Text, nullable=True)
-    evaluation_metrics = Column(JSON, nullable=True)
-
-    # Metadata
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
-
-    # Relationships
-    session = relationship("InterviewSession", back_populates="messages")
-
-class ChatHistory(Base):
-    __tablename__ = "chat_history"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-
-    # Thread info
-    thread_id = Column(String(255), nullable=False, index=True)
-    title = Column(String(255), nullable=True)
-
-    # Message content
-    role = Column(String(20), nullable=False)  # user, assistant
-    content = Column(Text, nullable=False)
-
-    # Metadata
+    question_number = Column(Integer)
+    question = Column(Text)
+    answer = Column(Text)
+    score = Column(Float)
+    feedback = Column(Text)
+    evaluation_metrics = Column(JSON)
+    status= Column(String(20), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
-    user = relationship("User", back_populates="chat_history")
+    session = relationship("InterviewSession", back_populates="answers")

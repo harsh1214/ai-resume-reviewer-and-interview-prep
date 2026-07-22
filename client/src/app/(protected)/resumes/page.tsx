@@ -45,7 +45,6 @@ export default function Resumes() {
             try {
                 const response = await api.get('/api/resume/get/resumes');
                 setResumes(response.data);
-                console.log(response.data)
             } catch (error) {
                 console.error('Error fetching resumes:', error);
                 toast.error('Failed to fetch resumes');
@@ -206,7 +205,7 @@ export default function Resumes() {
                                     >
                                         <div className="p-5">
                                             {/* File Info */}
-                                            <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 rounded-lg bg-background border border-border">
                                                         {getFileIcon(resume.filename)}

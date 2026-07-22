@@ -16,8 +16,7 @@ export default function Navbar() {
         { href: '/', label: 'Home', icon: IconHome },
         { href: '/dashboard', label: 'Dashboard', icon: IconLayoutDashboard },
         { href: '/resumes', label: 'Resumes', icon: IconFileAnalytics },
-        { href: '/interview', label: 'Interview Practice', icon: IconMessageChatbot },
-        { href: '/history', label: 'History', icon: IconHistory },
+        { href: '/interview', label: 'Interview Practice', icon: IconMessageChatbot }
     ]
 
     const isActive = (path: string) => pathname === path

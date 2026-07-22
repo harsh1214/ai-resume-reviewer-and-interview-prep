@@ -1,266 +1,410 @@
+// app/interview/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import {
-    IconMessageChatbot,
-    IconSend,
-    IconMicrophone,
-    IconVolume3,
-    IconBrain,
-    IconList,
-    IconArrowRight,
-} from '@tabler/icons-react'
+import { IconMessageChatbot, IconBrain, IconChartBar, IconClock, IconCheck, IconFileText, IconRefresh, IconArrowRight, IconList, IconEye, IconTrash, IconCalendar, IconStar, IconBriefcase } from '@tabler/icons-react'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
+import Link from 'next/link'
 
-interface Message {
-    id: number
-    type: 'user' | 'ai'
-    content: string
+interface Resume {
+    resume_id: string
+    filename: string
+    ats_score: number
+    analysis_results: {
+        skills: {
+            technical: string[]
+            soft: string[]
+        }
+    }
 }
 
-interface Question {
-    id: number
-    question: string
-    category: string
-    difficulty: 'Easy' | 'Medium' | 'Hard'
+interface InterviewSession {
+    session_id: string
+    role: string
+    difficulty: string
+    status: 'active' | 'completed' | 'abandoned'
+    total_questions: number
+    current_question: number
+    average_score: number | null
+    created_at: string
+    completed_at: string | null
+    strengths: string[] | null
+    weaknesses: string[] | null
+    recommendations: string[] | null
 }
 
-export default function InterviewPractice() {
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: 1,
-            type: 'ai',
-            content: "Hi! I'm your AI interview coach. I'll help you practice for your upcoming interviews. Let's start with a simple question: Tell me about yourself.",
-        },
-    ])
-    const [input, setInput] = useState('')
-    const [isRecording, setIsRecording] = useState(false)
-    const [selectedRole, setSelectedRole] = useState('Software Engineer')
+export default function InterviewDashboard() {
+    const router = useRouter()
+    const [loading, setLoading] = useState(true)
+    const [resumes, setResumes] = useState<Resume[]>([])
+    const [sessions, setSessions] = useState<InterviewSession[]>([])
+    const [selectedResume, setSelectedResume] = useState<string>('')
+    const [role, setRole] = useState('')
+    const [difficulty, setDifficulty] = useState('medium')
+    const [isStarting, setIsStarting] = useState(false)
+    const [deletingId, setDeletingId] = useState<string | null>(null)
+    
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true)
+            try {
+                const [resumesRes, sessionsRes] = await Promise.all([api.get('/api/resume/get/resumes'), api.get('/api/interview')])
+                setResumes(resumesRes.data)
+                setSessions(sessionsRes.data)
+            } catch (error) {
+                console.error('Error fetching data:', error)
+                toast.error('Failed to load data')
+            } finally {
+                setLoading(false)
+            }
+    
+        }
+        fetchData()
+    }, [])
 
-    const suggestedQuestions: Question[] = [
-        {
-            id: 1,
-            question: 'Tell me about a challenging project you worked on.',
-            category: 'Experience',
-            difficulty: 'Medium',
-        },
-        {
-            id: 2,
-            question: 'How do you handle conflict in a team?',
-            category: 'Behavioral',
-            difficulty: 'Hard',
-        },
-        {
-            id: 3,
-            question: 'What are your greatest strengths?',
-            category: 'General',
-            difficulty: 'Easy',
-        },
-        {
-            id: 4,
-            question: 'Where do you see yourself in 5 years?',
-            category: 'Career Goals',
-            difficulty: 'Medium',
-        },
-    ]
-
-    const handleSend = () => {
-        if (!input.trim()) return
-
-        setMessages([
-            ...messages,
-            { id: messages.length + 1, type: 'user', content: input },
-        ])
-        setInput('')
-
-        setTimeout(() => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: prev.length + 1,
-                    type: 'ai',
-                    content:
-                        "That's a great answer! Let's dive deeper. Can you provide a specific example from your experience that demonstrates this skill?",
-                },
-            ])
-        }, 1000)
+    const handleRefresh = () => {
+        router.refresh()
     }
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSend()
+    const startInterview = async () => {
+        if (!selectedResume) {
+            toast.error('Please select a resume')
+            return
+        }
+        if (!role) {
+            toast.error('Please enter a role')
+            return
+        }
+
+        setIsStarting(true)
+        try {
+            const response = await api.post('/api/interview/start', {
+                resume_id: selectedResume,
+                role: role,
+                difficulty: difficulty
+            })
+            
+            toast.success('Interview started!')
+            router.push(`/interview/${response.data.session_id}`)
+        } catch (error) {
+            console.error('Error starting interview:', error)
+            toast.error('Failed to start interview')
+        } finally {
+            setIsStarting(false)
         }
     }
 
-    const useSuggestedQuestion = (question: string) => {
-        setInput(question)
+    const deleteSession = async (sessionId: string) => {
+        if (!confirm('Are you sure you want to delete this interview session?')) return
+        
+        setDeletingId(sessionId)
+        try {
+            await api.delete(`/api/interview/${sessionId}`)
+            toast.success('Interview session deleted')
+            setSessions(sessions.filter(s => s.session_id !== sessionId))
+        } catch (error) {
+            console.error('Error deleting session:', error)
+            toast.error('Failed to delete session')
+        } finally {
+            setDeletingId(null)
+        }
+    }
+
+    const getStatusBadge = (status: string) => {
+        const statusMap = {
+            'active': { color: 'bg-blue-500/20 text-blue-400 border-blue-500/30', label: 'In Progress' },
+            'completed': { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: 'Completed' },
+            'abandoned': { color: 'bg-red-500/20 text-red-400 border-red-500/30', label: 'Abandoned' },
+        }
+        return statusMap[status as keyof typeof statusMap] || statusMap['active']
+    }
+
+    const getDifficultyBadge = (difficulty: string) => {
+        const diffMap = {
+            'easy': { color: 'bg-green-500/20 text-green-400', label: 'Easy' },
+            'medium': { color: 'bg-yellow-500/20 text-yellow-400', label: 'Medium' },
+            'hard': { color: 'bg-red-500/20 text-red-400', label: 'Hard' },
+        }
+        return diffMap[difficulty as keyof typeof diffMap] || diffMap['medium']
+    }
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent mx-auto"></div>
+                    <p className="text-gray-400 mt-4">Loading interview data...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <div className="bg-background flex items-center justify-center">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 lg:py-20 py-12">
+        <div className="bg-background py-8 lg:py-12">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <div className="flex justify-between items-center mb-8">
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                         <div>
-                            <h1 className="text-3xl font-bold text-white">
-                                Interview Practice
-                            </h1>
+                            <h1 className="text-3xl font-bold text-white">Interview Practice</h1>
                             <p className="text-gray-400 mt-1">
-                                Practice with AI and improve your interview skills
+                                {sessions.length === 0 
+                                    ? 'No interviews yet. Start your first one!' 
+                                    : `${sessions.length} interview${sessions.length > 1 ? 's' : ''} completed`}
                             </p>
                         </div>
-                        <div className="flex items-center space-x-3">
-                            <label className="text-sm text-gray-400">Role:</label>
-                            <select
-                                value={selectedRole}
-                                onChange={(e) => setSelectedRole(e.target.value)}
-                                className="bg-card-bg border border-border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500 text-white"
-                            >
-                                <option>Software Engineer</option>
-                                <option>Data Scientist</option>
-                                <option>Product Manager</option>
-                                <option>UX Designer</option>
-                            </select>
-                        </div>
+                        <button onClick={handleRefresh} className="inline-flex items-center cursor-pointer gap-2 bg-card-bg border border-border text-gray-300 px-4 py-2 rounded-lg hover:bg-card-hover transition-colors">
+                            <IconRefresh size={18} />
+                            <span>Refresh</span>
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Chat Area */}
-                        <div className="lg:col-span-2 bg-card-bg rounded-2xl shadow-lg overflow-hidden border border-border flex flex-col items-center justify-between w-full">
-                            <div className="p-4 bg-linear-to-r from-orange-500 to-purple-600 w-full">
-                                <div className="flex items-center space-x-3 text-white">
-                                    <IconMessageChatbot size={24} />
-                                    <span className="font-semibold">AI Interview Coach</span>
-                                    <span className="text-sm opacity-80">• Online</span>
+                    {/* Stats Summary */}
+                    {sessions.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <div className="flex items-center gap-2">
+                                    <IconBrain className="text-orange-400" size={18} />
+                                    <p className="text-sm text-gray-400">Total Interviews</p>
                                 </div>
+                                <p className="text-2xl font-bold text-white mt-1">{sessions.length}</p>
                             </div>
-
-                            <div className="h-full max-h-132 min-h-96 overflow-y-auto p-4 space-y-4 w-full">
-                                {messages.map((message) => (
-                                    <div
-                                        key={message.id}
-                                        className={`w-full flex ${message.type === 'user' ? 'justify-end' : 'justify-start'
-                                            }`}
-                                    >
-                                        <div
-                                            className={`max-w-3/4 p-4 rounded-lg ${message.type === 'user'
-                                                    ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white'
-                                                    : 'bg-background text-gray-200 border border-border'
-                                                }`}
-                                        >
-                                            <p className="whitespace-pre-wrap">{message.content}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="p-4 border-t border-border w-full">
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        className={`p-2 rounded-lg transition-colors ${isRecording
-                                                ? 'bg-red-500/20 text-red-400'
-                                                : 'bg-background text-gray-400 hover:bg-border'
-                                            }`}
-                                        onClick={() => setIsRecording(!isRecording)}
-                                    >
-                                        <IconMicrophone size={20} />
-                                    </button>
-                                    <button className="p-2 rounded-lg bg-background text-gray-400 hover:bg-border transition-colors">
-                                        <IconVolume3 size={20} />
-                                    </button>
-                                    <input
-                                        type="text"
-                                        value={input}
-                                        onChange={(e) => setInput(e.target.value)}
-                                        onKeyPress={handleKeyPress}
-                                        placeholder="Type your answer..."
-                                        className="flex-1 px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-500"
-                                    />
-                                    <button
-                                        onClick={handleSend}
-                                        className="bg-linear-to-r from-orange-500 to-purple-600 text-white p-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
-                                    >
-                                        <IconSend size={20} />
-                                    </button>
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <div className="flex items-center gap-2">
+                                    <IconCheck className="text-green-400" size={18} />
+                                    <p className="text-sm text-gray-400">Completed</p>
                                 </div>
+                                <p className="text-2xl font-bold text-green-400 mt-1">
+                                    {sessions.filter(s => s.status === 'completed').length}
+                                </p>
+                            </div>
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <div className="flex items-center gap-2">
+                                    <IconChartBar className="text-orange-400" size={18} />
+                                    <p className="text-sm text-gray-400">Average Score</p>
+                                </div>
+                                <p className="text-2xl font-bold text-orange-400 mt-1">
+                                    {(() => {
+                                        const completed = sessions.filter(s => s.status === 'completed' && s.average_score !== null)
+                                        if (completed.length === 0) return '—'
+                                        const avg = completed.reduce((acc, s) => acc + (s.average_score || 0), 0) / completed.length
+                                        return Math.round(avg) + '%'
+                                    })()}
+                                </p>
+                            </div>
+                            <div className="bg-card-bg rounded-xl p-4 border border-border">
+                                <div className="flex items-center gap-2">
+                                    <IconClock className="text-blue-400" size={18} />
+                                    <p className="text-sm text-gray-400">In Progress</p>
+                                </div>
+                                <p className="text-2xl font-bold text-blue-400 mt-1">
+                                    {sessions.filter(s => s.status === 'active').length}
+                                </p>
                             </div>
                         </div>
+                    )}
 
-                        {/* Sidebar */}
-                        <div className="space-y-6">
-                            {/* Suggested Questions */}
-                            <div className="bg-card-bg rounded-2xl shadow-lg p-6 border border-border">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-semibold text-white">
-                                        Suggested Questions
-                                    </h3>
-                                    <IconList className="text-gray-400" size={20} />
-                                </div>
-                                <div className="space-y-3">
-                                    {suggestedQuestions.map((q) => (
+                    {/* Start New Interview */}
+                    <div className="bg-card-bg rounded-2xl border border-border p-6 mb-8">
+                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                            <IconMessageChatbot className="text-orange-400" size={24} />
+                            Start New Interview
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Select Resume
+                                </label>
+                                <select
+                                    value={selectedResume}
+                                    onChange={(e) => setSelectedResume(e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                >
+                                    <option value="">Choose a resume...</option>
+                                    {resumes.map((resume) => (
+                                        <option key={resume.resume_id} value={resume.resume_id}>
+                                            {resume.filename} {resume.ats_score ? `(${resume.ats_score}%)` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Role / Position
+                                </label>
+                                <input
+                                    type="text"
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value)}
+                                    placeholder="e.g., Software Engineer"
+                                    className="w-full px-4 py-2.5 rounded-lg bg-background border border-border text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                    Difficulty
+                                </label>
+                                <div className="grid sm:grid-cols-3 grid-cols-1 gap-2">
+                                    {['Easy', 'Medium', 'Hard'].map((level) => (
                                         <button
-                                            key={q.id}
-                                            onClick={() => useSuggestedQuestion(q.question)}
-                                            className="w-full text-left p-3 rounded-lg hover:bg-background transition-colors border border-border"
+                                            key={level}
+                                            onClick={() => setDifficulty(level.toLowerCase())}
+                                            className={`px-3 py-2 rounded-lg transition-all ${
+                                                difficulty === level.toLowerCase()
+                                                    ? 'bg-linear-to-r from-orange-500 to-purple-600 text-white'
+                                                    : 'bg-background border border-border text-gray-400 hover:border-orange-500/30'
+                                            }`}
                                         >
-                                            <div className="flex items-start justify-between">
-                                                <span className="text-sm text-gray-300">
-                                                    {q.question}
-                                                </span>
-                                                <IconArrowRight className="text-gray-500" size={16} />
-                                            </div>
-                                            <div className="flex items-center space-x-2 mt-1">
-                                                <span className="text-xs text-gray-400">
-                                                    {q.category}
-                                                </span>
-                                                <span
-                                                    className={`text-xs px-2 py-1 rounded-full ${q.difficulty === 'Easy'
-                                                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                                            : q.difficulty === 'Medium'
-                                                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                                                                : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                                        }`}
-                                                >
-                                                    {q.difficulty}
-                                                </span>
-                                            </div>
+                                            {level}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-
-                            {/* Tips */}
-                            <div className="bg-linear-to-r from-purple-900/20 to-pink-900/20 rounded-2xl shadow-lg p-6 border border-border">
-                                <div className="flex items-center space-x-2 mb-4">
-                                    <IconBrain className="text-purple-400" size={24} />
-                                    <h3 className="font-semibold text-white">Interview Tips</h3>
-                                </div>
-                                <ul className="space-y-3 text-sm">
-                                    <li className="flex items-start space-x-2">
-                                        <span className="text-purple-400">•</span>
-                                        <span className="text-gray-300">Use the STAR method for behavioral questions</span>
-                                    </li>
-                                    <li className="flex items-start space-x-2">
-                                        <span className="text-purple-400">•</span>
-                                        <span className="text-gray-300">Practice speaking clearly and confidently</span>
-                                    </li>
-                                    <li className="flex items-start space-x-2">
-                                        <span className="text-purple-400">•</span>
-                                        <span className="text-gray-300">Research the company before your interview</span>
-                                    </li>
-                                    <li className="flex items-start space-x-2">
-                                        <span className="text-purple-400">•</span>
-                                        <span className="text-gray-300">Prepare questions to ask the interviewer</span>
-                                    </li>
-                                </ul>
-                            </div>
                         </div>
+                        <button
+                            onClick={startInterview}
+                            disabled={isStarting || !selectedResume || !role}
+                            className="mt-4 inline-flex items-center gap-2 bg-linear-to-r from-orange-500 to-purple-600 text-white px-6 py-2.5 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isStarting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                    <span>Starting...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <IconMessageChatbot size={18} />
+                                    <span>Start Interview</span>
+                                    <IconArrowRight size={18} />
+                                </>
+                            )}
+                        </button>
                     </div>
+
+                    {/* Interview History */}
+                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                        <IconList className="text-purple-400" size={24} />
+                        Interview History
+                    </h2>
+
+                    {sessions.length === 0 ? (
+                        <div className="bg-card-bg rounded-2xl border border-border p-12 text-center">
+                            <div className="w-20 h-20 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                                <IconMessageChatbot className="text-orange-400" size={32} />
+                            </div>
+                            <h3 className="text-xl font-semibold text-white mb-2">No Interview Sessions</h3>
+                            <p className="text-gray-400 mb-6">Start your first AI-powered interview practice session</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                            {sessions.map((session) => {
+                                const status = getStatusBadge(session.status)
+                                const difficulty = getDifficultyBadge(session.difficulty)
+                                const isCompleted = session.status === 'completed'
+                                
+                                return (
+                                    <motion.div
+                                        key={session.session_id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="bg-card-bg rounded-2xl border border-border hover:border-orange-500/30 transition-all p-5"
+                                    >
+                                        <div className="flex md:flex-row flex-col flex-wrap items-start justify-between gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center flex-wrap gap-3 mb-6">
+                                                    <div className="w-fit flex flex-row items-center gap-3">
+                                                        <IconBriefcase className="text-orange-400" size={20} />
+                                                        <h3 className="font-semibold text-white">
+                                                            {session.role}
+                                                        </h3>
+                                                    </div>
+                                                    <div className="w-fit flex flex-row items-center gap-3 flex-wrap">
+                                                        <span className={`text-xs px-2.5 py-1 rounded-full border ${difficulty.color}`}>
+                                                            {difficulty.label}
+                                                        </span>
+                                                        <span className={`text-xs px-2.5 py-1 rounded-full border ${status.color}`}>
+                                                            {status.label}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <IconCalendar size={14} />
+                                                        {formatDate(session.created_at)}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <IconFileText size={14} />
+                                                        {session.total_questions} questions
+                                                    </span>
+                                                    {isCompleted && session.average_score !== null && (
+                                                        <span className="flex items-center gap-1">
+                                                            <IconStar size={14} className="text-yellow-400" />
+                                                            <span className="font-semibold text-orange-400">{session.average_score}%</span>
+                                                        </span>
+                                                    )}
+                                                    {session.status === 'active' && (
+                                                        <span className="flex items-center gap-1 text-blue-400">
+                                                            <IconClock size={14} className="animate-pulse" />
+                                                            {session.current_question}/{session.total_questions}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {session.status === 'active' ? (
+                                                    <Link
+                                                        href={`/interview/${session.session_id}`}
+                                                        className="inline-flex items-center gap-1.5 bg-linear-to-r from-orange-500 to-purple-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-orange-500/25 transition-all"
+                                                    >
+                                                        <IconEye size={16} />
+                                                        Continue
+                                                    </Link>
+                                                ) : (
+                                                    <Link
+                                                        href={`/interview/${session.session_id}`}
+                                                        className="inline-flex items-center gap-1.5 bg-card-bg border border-border text-gray-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-card-hover transition-all"
+                                                    >
+                                                        <IconEye size={16} />
+                                                        View Results
+                                                    </Link>
+                                                )}
+                                                <button
+                                                    onClick={() => deleteSession(session.session_id)}
+                                                    disabled={deletingId === session.session_id}
+                                                    className="p-2 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors disabled:opacity-50"
+                                                >
+                                                    {deletingId === session.session_id ? (
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-red-400 border-t-transparent" />
+                                                    ) : (
+                                                        <IconTrash size={18} />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )
+                            })}
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </div>

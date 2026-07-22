@@ -1,143 +1,161 @@
-# from typing import Dict, Any, List, Optional
-# from loguru import logger
-# import google.generativeai as genai
-# from langchain_core.prompts import PromptTemplate
-# from langchain_google_genai import ChatGoogleGenerativeAI
-# from app.config import settings
+from typing import Any, Dict, List 
+from loguru import logger
+from google.genai import types
+from google import genai
+from app.config import settings
+from app.schemas.interview import AnswerEvaluation, InterviewFinalReport
 
-# class InterviewCoach:
-#     def __init__(self):
-#         """Initialize the interview coach with Gemini AI"""
-#         self.api_key = settings.GOOGLE_API_KEY
-#         if not self.api_key:
-#             logger.warning("GOOGLE_API_KEY not set. Interview coach will not work.")
-#             return
-        
-#         genai.configure(api_key=self.api_key)
-#         self.llm = ChatGoogleGenerativeAI(
-#             model=settings.AI_MODEL,
-#             temperature=0.8,
-#             max_tokens=settings.AI_MAX_TOKENS
-#         )
-    
-#     async def generate_question(self, role: str, difficulty: str = "medium", context: str = "") -> str:
-#         """Generate an interview question based on role and difficulty"""
-#         prompt = PromptTemplate(
-#             input_variables=["role", "difficulty", "context"],
-#             template="""
-#             You are an expert technical interviewer at a FAANG company.
-#             Generate a challenging interview question for a {role} position.
+class InterviewCoach:
+    def __init__(self):
+        self.api_key = settings.GOOGLE_API_KEY
+
+        if not self.api_key:
+            logger.warning("GOOGLE_API_KEY not set. Interview coach will not work.")
+            return
+
+        self.client = genai.Client(api_key=self.api_key)
+
+    async def generate_questions(self, role: str, difficulty: str = "medium", resume: str = "") -> List[str]:
+        try:
+            if not role or not difficulty:
+                raise ValueError("Missing required parameters")
+
+            prompt = f"""
+                You are an expert technical interviewer.
+                Role: {role}
+                Difficulty: {difficulty}
+                Resume Analysis: {resume}
+
+                Generate exactly 5 interview questions.
+                Rules:
+                - No duplicate questions
+                - Mix technical and behavioral questions
+                - Use resume skills and experience
+                - Return ONLY valid JSON array
+
+                Example:
+
+                [
+                    "Question 1",
+                    "Question 2",
+                    "Question 3",
+                    "Question 4",
+                    "Question 5"
+                ]
+            """
+            response = self.client.models.generate_content(
+                model=settings.AI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=list[str]
+                )
+            )
+
+            questions = response.parsed
+
+            if not questions:
+                raise ValueError("Gemini returned no questions")
             
-#             Difficulty Level: {difficulty}
-#             {context}
+            if len(questions) != 5:
+                raise ValueError(f"Expected 5 questions but got {len(questions)}")
+
+            print("QUESTIONS TYPE:", type(questions))
+            print("QUESTIONS:", questions)
+            return questions
+
+        except Exception as e:
+            logger.error(f"Error generating questions: {e}")
+            raise ValueError("Failed to generate interview questions")  
+
+    async def evaluate_answer(self, question: str, answer: str, role: str) -> Dict[str, Any]:
+        try:
+            if not question or not answer or not role:
+                return { "status": "error", "message": "Missing required parameters"}
             
-#             Guidelines:
-#             - {difficulty} level questions should be appropriately challenging
-#             - Include both technical and behavioral aspects
-#             - Make it specific to the role
-#             - Ensure it's clear and actionable
+            prompt=f"""
+                You are a senior technical interviewer.
+                Role: {role}
+                Question:
+                {question}
+                Candidate Answer:
+                {answer}
+
+                Evaluate:
+                1. Technical Accuracy (0-100)
+                2. Communication (0-100)
+                3. Problem Solving (0-100)
+                4. Confidence (0-100)
+
+                Also provide constructive feedback.
+            """
+
+            response = self.client.models.generate_content(
+                model=settings.AI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=AnswerEvaluation,
+                    temperature=0.2
+                )
+            )
+
+            evaluation = response.parsed
+
+            if not evaluation:
+                raise ValueError("Gemini returned no evaluation")
             
-#             Return ONLY the question text, no additional text or context.
-#             """
-#         )
-        
-#         chain = prompt | self.llm
-#         result = await chain.ainvoke({
-#             "role": role,
-#             "difficulty": difficulty,
-#             "context": context
-#         })
-        
-#         return result.content.strip()
-    
-#     async def evaluate_answer(self, question: str, answer: str, role: str) -> Dict[str, Any]:
-#         """Evaluate a candidate's answer and provide feedback"""
-#         prompt = PromptTemplate(
-#             input_variables=["question", "answer", "role"],
-#             template="""
-#             You are an expert interviewer evaluating a candidate's response for a {role} position.
-            
-#             Question asked: {question}
-#             Candidate's answer: {answer}
-            
-#             Provide a detailed evaluation with:
-#             1. Score (0-100)
-#             2. Strengths of the answer
-#             3. Areas for improvement
-#             4. What a better answer would include
-#             5. Suggested follow-up questions
-            
-#             Return your evaluation as a JSON object with the following structure:
-#             {{
-#                 "score": 0-100,
-#                 "strengths": ["strength1", "strength2"],
-#                 "improvements": ["improvement1", "improvement2"],
-#                 "better_answer_key_points": ["point1", "point2"],
-#                 "follow_up_questions": ["question1", "question2"]
-#             }}
-            
-#             Return ONLY valid JSON, no markdown formatting.
-#             """
-#         )
-        
-#         chain = prompt | self.llm
-#         result = await chain.ainvoke({
-#             "question": question,
-#             "answer": answer,
-#             "role": role
-#         })
-        
-#         import json
-#         try:
-#             evaluation = json.loads(result.content.strip())
-#             return evaluation
-#         except:
-#             return {
-#                 "score": 0,
-#                 "strengths": ["Unable to evaluate"],
-#                 "improvements": ["Please try again"],
-#                 "better_answer_key_points": [],
-#                 "follow_up_questions": []
-#             }
-    
-#     async def generate_feedback(self, evaluation: Dict[str, Any]) -> str:
-#         """Generate constructive feedback from evaluation"""
-#         if not evaluation:
-#             return "Please provide a more detailed answer for better evaluation."
-        
-#         score = evaluation.get("score", 0)
-#         strengths = evaluation.get("strengths", [])
-#         improvements = evaluation.get("improvements", [])
-        
-#         feedback_parts = []
-        
-#         if score >= 80:
-#             feedback_parts.append("Excellent answer! You've demonstrated strong understanding.")
-#         elif score >= 60:
-#             feedback_parts.append("Good answer. You're on the right track.")
-#         elif score >= 40:
-#             feedback_parts.append("Decent answer. There's room for improvement.")
-#         else:
-#             feedback_parts.append("Your answer needs significant improvement. Let's work on it.")
-        
-#         if strengths:
-#             feedback_parts.append(f"Strengths: {', '.join(strengths[:3])}")
-        
-#         if improvements:
-#             feedback_parts.append(f"Areas to improve: {', '.join(improvements[:3])}")
-        
-#         return " ".join(feedback_parts)
-    
-#     async def get_next_question_strategy(self, previous_scores: List[float]) -> str:
-#         """Determine the next question difficulty based on previous performance"""
-#         if not previous_scores:
-#             return "medium"
-        
-#         avg_score = sum(previous_scores) / len(previous_scores)
-        
-#         if avg_score >= 80:
-#             return "hard"
-#         elif avg_score >= 60:
-#             return "medium"
-#         else:
-#             return "easy"
+            return evaluation.model_dump()
+
+        except Exception as e:
+            logger.error(f"Error evaluating answer: {e}")
+            raise ValueError("Failed to evaluate answer")
+
+    async def generate_final_report(self, role: str, answers: Dict[str, Any]) -> str:
+        try:
+            if not role or not answers:
+                raise ValueError("Missing required parameters")
+
+            formatted_answers = []
+            for answer in answers:
+                formatted_answers.append({
+                    "question": answer.question,
+                    "answer": answer.answer,
+                    "score": answer.score,
+                    "feedback": answer.feedback
+                })
+
+            prompt = f"""
+                You are a senior technical interviewer.
+                Role: {role}
+                Candidate Answers:
+                {formatted_answers}
+
+                Analyze the overall interview performance
+                Return:
+                - 3 strengths
+                - 3 weaknesses
+                - 3 recommendations for improvement
+                Be specific and actionable.
+            """
+
+            response = self.client.models.generate_content(
+                model=settings.AI_MODEL,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=InterviewFinalReport,
+                    temperature=0.3,
+                )
+            )
+
+            report = response.parsed
+
+            if not report:
+                raise ValueError("Gemini returned no report")
+
+            return report.model_dump()
+
+        except Exception as e:
+            logger.error(f"Error generating final report: {e}")
+            raise ValueError("Failed to generate final report")
