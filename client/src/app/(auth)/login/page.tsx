@@ -103,7 +103,7 @@ export default function Login() {
                                     </Link>
                                 </div>
                                 <button type="submit" disabled={loading || isSubmitting} className="w-full bg-linear-to-r from-orange-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-orange-500/25 transition-all">
-                                    {loading ? "Signing In..." : "Sign In"}
+                                    {loading ? "Logging in..." : "Login"}
                                 </button>
                             </form>
                             <p className="mt-8 text-center text-sm text-gray-400">
