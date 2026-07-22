@@ -122,7 +122,6 @@ networkx==3.6.1
 nltk==3.9.2
 notebook==7.5.3
 notebook_shim==0.2.4
-numba==0.62.1
 numpy==2.3.5
 orjson==3.11.9
 ormsgpack==1.12.2
