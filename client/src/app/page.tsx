@@ -13,7 +13,6 @@ import {
     IconTarget,
 } from '@tabler/icons-react'
 import FeatureCard from '@/components/FeatureCard'
-import ResumeUpload from '@/components/ResumeUpload'
 
 export default function Landing() {
 

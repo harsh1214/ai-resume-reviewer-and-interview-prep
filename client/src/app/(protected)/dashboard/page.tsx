@@ -4,22 +4,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import {
-    IconFileText,
-    IconMessageChatbot,
-    IconHistory,
-    IconChartBar,
-    IconFiles,
-    IconBrain,
-    IconUpload,
-    IconPlus,
-    IconArrowRight,
-    IconClock,
-    IconCheck,
-    IconX,
-    IconCalendar,
-    IconStar,
-} from '@tabler/icons-react'
+import { IconFileText, IconMessageChatbot, IconChartBar, IconFiles, IconBrain, IconUpload, IconPlus, IconArrowRight, IconClock, IconCheck, IconX, IconCalendar, IconStar } from '@tabler/icons-react'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 
