@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: str = os.getenv("ALLOWED_EXTENSIONS", ".pdf,.docx")
 
     # Cors
-    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+    ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 
     # AI Settings
     AI_TEMPERATURE: float = float(os.getenv("AI_TEMPERATURE", "0.3"))
